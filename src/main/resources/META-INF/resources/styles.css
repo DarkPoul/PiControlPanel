@@ -1,0 +1,433 @@
+:root{
+    --bg0: #05060a;
+    --bg1: #080a12;
+    --glass: rgba(18, 22, 38, 0.55);
+    --stroke: rgba(140, 170, 255, 0.18);
+
+    --text: rgba(235, 242, 255, 0.92);
+    --muted: rgba(205, 220, 255, 0.62);
+
+    --neonA: #7c3aed;   /* фіолет */
+    --neonB: #22d3ee;   /* циан */
+    --neonC: #a3ff12;   /* кислотний */
+    --neonD: #ff2bd6;   /* магента */
+
+    --warn: #ffd34d;
+    --crit: #ff3b3b;
+}
+
+html, body{
+    height: 100%;
+    margin: 0;
+    background: var(--bg0);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
+
+.cp-root{
+    background: transparent;
+}
+
+.cp-stage{
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* === BACKGROUND: gradients + grid + scanlines === */
+.cp-bg{
+    position: absolute;
+    inset: 0;
+    background:
+            radial-gradient(1200px 700px at 15% 20%, rgba(34,211,238,0.16), transparent 60%),
+            radial-gradient(900px 600px at 80% 30%, rgba(124,58,237,0.18), transparent 65%),
+            radial-gradient(1000px 700px at 40% 90%, rgba(255,43,214,0.10), transparent 60%),
+            linear-gradient(180deg, var(--bg0), var(--bg1));
+    filter: saturate(112%);
+}
+
+/* сітка */
+.cp-bg::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background:
+            linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.32;
+    transform: translateZ(0);
+}
+
+/* scanlines (легко і красиво) */
+.cp-bg::after{
+    content:"";
+    position:absolute;
+    inset:-20%;
+    background:
+            repeating-linear-gradient(
+                    180deg,
+                    rgba(255,255,255,0.00) 0px,
+                    rgba(255,255,255,0.00) 10px,
+                    rgba(34,211,238,0.035) 12px,
+                    rgba(255,255,255,0.00) 14px
+            );
+    opacity: 0.55;
+    mix-blend-mode: screen;
+    animation: cp-scan 6.5s linear infinite;
+    pointer-events:none;
+}
+
+@keyframes cp-scan{
+    0%   { transform: translateY(-12%); }
+    100% { transform: translateY(12%); }
+}
+
+.cp-shell{
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 18px 22px;
+}
+
+/* === HEADER === */
+.cp-header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.cp-title{
+    margin: 0;
+    letter-spacing: 0.18em;
+    font-weight: 800;
+    font-size: clamp(22px, 2.4vw, 34px);
+    text-transform: uppercase;
+    text-shadow:
+            0 0 12px rgba(34,211,238,0.18),
+            0 0 18px rgba(124,58,237,0.10);
+}
+
+.cp-subtitle{
+    display:block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+.cp-pill{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(20,24,44,0.55), rgba(14,16,30,0.35));
+    border: 1px solid var(--stroke);
+    backdrop-filter: blur(10px);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 12px 28px rgba(0,0,0,0.40);
+}
+
+.cp-pill span:first-child{
+    color: var(--neonB);
+    text-shadow: 0 0 10px rgba(34,211,238,0.6);
+    font-size: 12px;
+}
+
+.cp-pill-uptime{
+    color: var(--text);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+}
+
+/* === GRID/CARDS === */
+.cp-grid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 14px;
+}
+
+.cp-card{
+    grid-column: span 4;
+    background: linear-gradient(180deg, rgba(22,26,48,0.55), rgba(12,14,26,0.35));
+    border: 1px solid var(--stroke);
+    border-radius: 18px;
+    padding: 14px 14px 16px;
+    backdrop-filter: blur(14px);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 18px 40px rgba(0,0,0,0.45);
+    position: relative;
+    overflow:hidden;
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.cp-card:hover{
+    transform: translateY(-2px);
+    border-color: rgba(140,170,255,0.28);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.03) inset,
+            0 22px 44px rgba(0,0,0,0.50);
+}
+
+.cp-card::before{
+    content:"";
+    position:absolute;
+    inset: -2px;
+    background: radial-gradient(700px 120px at 20% 0%, rgba(34,211,238,0.12), transparent 60%);
+    pointer-events:none;
+}
+
+.cp-card-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.cp-card-left{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+}
+
+/* icon bubble */
+.cp-icon{
+    width: 28px;
+    height: 28px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(140,170,255,0.16);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset;
+    text-shadow: 0 0 10px rgba(34,211,238,0.30);
+    font-size: 14px;
+}
+
+.cp-label{
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 800;
+    color: rgba(235,242,255,0.90);
+}
+
+.cp-hint{
+    font-size: 11px;
+    color: var(--muted);
+}
+
+.cp-card-body{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+}
+
+.cp-value{
+    font-size: 12px;
+    color: rgba(235,242,255,0.88);
+    letter-spacing: 0.04em;
+}
+
+/* === PROGRESS BAR === */
+.cp-bar{
+    width: 100%;
+}
+
+vaadin-progress-bar.cp-bar::part(bar){
+    background: rgba(255,255,255,0.06);
+    border-radius: 999px;
+}
+
+vaadin-progress-bar.cp-bar::part(value){
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--neonB), var(--neonA));
+    box-shadow:
+            0 0 18px rgba(34,211,238,0.22),
+            0 0 24px rgba(124,58,237,0.16);
+    transition: filter 180ms ease, box-shadow 180ms ease;
+}
+
+.cp-ram vaadin-progress-bar.cp-bar::part(value){
+    background: linear-gradient(90deg, var(--neonB), var(--neonC));
+}
+
+.cp-disk vaadin-progress-bar.cp-bar::part(value){
+    background: linear-gradient(90deg, var(--neonA), var(--neonD));
+}
+
+.cp-cpu vaadin-progress-bar.cp-bar::part(value){
+    background: linear-gradient(90deg, var(--neonC), var(--neonB));
+}
+
+/* === THRESHOLDS === */
+/* warn: легке мерехтіння + теплий акцент */
+.cp-card.is-warn{
+    border-color: rgba(255, 211, 77, 0.35);
+}
+
+.cp-card.is-warn .cp-icon{
+    border-color: rgba(255, 211, 77, 0.32);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 0 18px rgba(255, 211, 77, 0.10);
+}
+
+.cp-card.is-warn vaadin-progress-bar.cp-bar::part(value){
+    filter: saturate(120%);
+    box-shadow:
+            0 0 16px rgba(255, 211, 77, 0.18),
+            0 0 22px rgba(255, 211, 77, 0.10);
+}
+
+/* crit: червоний неон + пульсація (легка) */
+.cp-card.is-crit{
+    border-color: rgba(255, 59, 59, 0.45);
+}
+
+.cp-card.is-crit .cp-icon{
+    border-color: rgba(255, 59, 59, 0.40);
+    text-shadow: 0 0 12px rgba(255, 59, 59, 0.55);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 0 22px rgba(255, 59, 59, 0.12);
+}
+
+.cp-card.is-crit vaadin-progress-bar.cp-bar::part(value){
+    background: linear-gradient(90deg, rgba(255,59,59,0.95), rgba(255,43,214,0.85));
+    animation: cp-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes cp-pulse{
+    0%, 100% { filter: brightness(1.0) saturate(120%); }
+    50%      { filter: brightness(1.25) saturate(140%); }
+}
+
+.cp-footer{
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    padding: 10px 2px;
+}
+
+/* Responsive */
+@media (max-width: 900px){
+    .cp-card{ grid-column: span 6; }
+}
+@media (max-width: 620px){
+    .cp-header{ align-items:flex-start; flex-direction:column; }
+    .cp-card{ grid-column: span 12; }
+}
+
+
+/* === ALERT BAR (широка панель під заголовком) === */
+.cp-alert-bar{
+    width: 100%;
+    display:flex;
+    flex-wrap:wrap;
+    gap: 10px;
+    padding: 12px 12px;
+    margin: 12px 0 14px;
+
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(18, 22, 38, 0.62), rgba(10, 12, 22, 0.34));
+    border: 1px solid rgba(140,170,255,0.18);
+    backdrop-filter: blur(14px);
+
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 18px 40px rgba(0,0,0,0.42);
+
+    position: relative;
+    overflow:hidden;
+}
+
+/* glow “під стан” */
+.cp-alert-bar.is-ok{
+    border-color: rgba(34,211,238,0.22);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 14px 34px rgba(0,0,0,0.40),
+            0 0 24px rgba(34,211,238,0.12);
+}
+
+.cp-alert-bar.is-warn{
+    border-color: rgba(255,211,77,0.28);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 14px 34px rgba(0,0,0,0.40),
+            0 0 26px rgba(255,211,77,0.10);
+}
+
+.cp-alert-bar.is-crit{
+    border-color: rgba(255,59,59,0.34);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 14px 34px rgba(0,0,0,0.40),
+            0 0 30px rgba(255,59,59,0.12);
+}
+
+/* легкий “енергетичний” перелив зверху */
+.cp-alert-bar::before{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    background: radial-gradient(900px 120px at 18% 0%, rgba(34,211,238,0.10), transparent 55%);
+    pointer-events:none;
+}
+
+/* === CHIPS === */
+.cp-alert-chip{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(140,170,255,0.14);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset;
+}
+
+.cp-alert-dot{
+    font-size: 12px;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(34,211,238,0.20);
+}
+
+.cp-alert-text{
+    font-size: 12px;
+    color: rgba(235,242,255,0.88);
+    letter-spacing: 0.02em;
+}
+
+/* критичні чіпи пульсують */
+.cp-alert-chip.is-crit{
+    border-color: rgba(255,59,59,0.32);
+    box-shadow:
+            0 0 0 1px rgba(255,255,255,0.02) inset,
+            0 0 18px rgba(255,59,59,0.10);
+    animation: cp-chip-pulse 1.15s ease-in-out infinite;
+}
+
+@keyframes cp-chip-pulse{
+    0%, 100% { transform: translateY(0); filter: brightness(1.0); }
+    50%      { transform: translateY(-1px); filter: brightness(1.18); }
+}
+
+/* додатковий рядок в CPU картці */
+.cp-subvalue{
+    display:block;
+    margin-top: 10px;
+    color: rgba(205,220,255,0.70);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+}
