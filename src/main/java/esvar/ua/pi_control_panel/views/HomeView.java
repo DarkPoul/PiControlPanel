@@ -38,6 +38,10 @@ public class HomeView extends VerticalLayout {
     // Нове: додаткова “стрічка” деталей у CPU картці
     private final Span cpuDetails = new Span();
 
+    private final Div offlineOverlay = new Div();
+    private final Span offlineLastSeen = new Span("—");
+    private final Span offlineSnapshot = new Span("—");
+
     private Div ramCard;
     private Div diskCard;
     private Div cpuCard;
@@ -52,6 +56,8 @@ public class HomeView extends VerticalLayout {
         setPadding(false);
         setSpacing(false);
         setAlignItems(FlexComponent.Alignment.STRETCH);
+
+        UI.getCurrent().getPage().addJavaScript("offline.js");
 
         Div bg = new Div();
         bg.addClassName("cp-bg");
@@ -101,9 +107,20 @@ public class HomeView extends VerticalLayout {
         Div footer = new Div(new Span("Порада: тримай вкладку відкритою — метрики оновлюються кожні 5 секунд."));
         footer.addClassName("cp-footer");
 
+        offlineOverlay.addClassName("cp-offline");
+        offlineOverlay.add(
+                new Div(new Span("⚫ ЗВʼЯЗОК ВТРАЧЕНО")),
+                new Div(new Span("Raspberry Pi недоступний. Показано останній збережений знімок.")),
+                new Div(new Span("Останній контакт: "), offlineLastSeen),
+                new Div(new Span("Знімок: "), offlineSnapshot)
+        );
+        offlineLastSeen.setId("cp-last-seen");
+        offlineSnapshot.setId("cp-offline-snapshot");
+        offlineSnapshot.addClassName("cp-offline-snapshot");
+
         shell.add(header, alertBar, grid, footer);
 
-        Div stage = new Div(bg, shell);
+        Div stage = new Div(bg, shell, offlineOverlay);
         stage.addClassName("cp-stage");
         add(stage);
 
@@ -176,8 +193,8 @@ public class HomeView extends VerticalLayout {
         applyThresholdClasses(cpuCard, cpu, 0.85, 0.95);
 
         // CPU details: температура + throttling (дублюємо тут)
-        String tempPart = s.cpuTempC().isPresent()
-                ? ("🌡 " + String.format("%.1f°C", s.cpuTempC().getAsDouble()))
+        String tempPart = s.cpuTempC() != null
+                ? ("🌡 " + String.format("%.1f°C", s.cpuTempC()))
                 : "🌡 н/д";
 
         String powerPart = buildPowerStateText(s);
@@ -204,7 +221,7 @@ public class HomeView extends VerticalLayout {
         boolean hasWarn = !s.alertsWarn().isEmpty();
 
         // Додатково: CPU temp пороги (навіть якщо alerts списки пусті на ПК)
-        double temp = s.cpuTempC().orElse(-1);
+        double temp = s.cpuTempC() != null ? s.cpuTempC() : -1;
         boolean tempCrit = temp >= 80.0;
         boolean tempWarn = temp >= 70.0 && temp < 80.0;
 
@@ -246,9 +263,9 @@ public class HomeView extends VerticalLayout {
     }
 
     private void applyTempThresholdToCpuCard(SystemStats s) {
-        if (s.cpuTempC().isEmpty()) return;
+        if (s.cpuTempC() == null) return;
 
-        double t = s.cpuTempC().getAsDouble();
+        double t = s.cpuTempC();
 
         // Не ламаємо твою логику CPU% — просто додаємо клас на карту
         if (t >= 80.0) {
