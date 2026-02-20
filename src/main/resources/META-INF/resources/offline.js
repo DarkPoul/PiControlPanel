@@ -3,6 +3,9 @@
   const STATS_URL = '/api/stats';
   const KEY_LAST_SEEN = 'cp:lastSeen';
   const KEY_LAST_STATS = 'cp:lastStats';
+  const HEARTBEAT_TIMEOUT_MS = 700;
+  const STATS_TIMEOUT_MS = 900;
+  const POLL_INTERVAL_MS = 2000;
 
   let failStreak = 0;
   let offline = false;
@@ -20,11 +23,11 @@
   };
 
   const getPowerState = (stats) => {
-    if (!stats) return 'н/д';
+    if (!stats) return 'n/a';
     const crit = stats.undervoltageNow || stats.freqCappedNow || stats.throttledNow;
     const was = stats.undervoltageOccurred || stats.freqCappedOccurred || stats.throttledOccurred;
-    if (crit) return 'КРИТИЧНО';
-    if (was) return 'БУЛО';
+    if (crit) return 'CRITICAL';
+    if (was) return 'PAST EVENT';
     return 'OK';
   };
 
@@ -32,30 +35,30 @@
     if (!value) return '—';
     const ts = Number(value);
     if (Number.isNaN(ts) || ts <= 0) return '—';
-    return new Date(ts).toLocaleString('uk-UA');
+    return new Date(ts).toLocaleString();
   };
 
   const formatPercent = (num) => {
-    if (typeof num !== 'number' || Number.isNaN(num)) return 'н/д';
+    if (typeof num !== 'number' || Number.isNaN(num)) return 'n/a';
     return `${Math.round(num * 100)}%`;
   };
 
   const formatTemp = (value) => {
-    if (typeof value !== 'number' || Number.isNaN(value)) return 'н/д';
+    if (typeof value !== 'number' || Number.isNaN(value)) return 'n/a';
     return `${value.toFixed(1)}°C`;
   };
 
   const formatUptime = (seconds) => {
-    if (typeof seconds !== 'number' || Number.isNaN(seconds)) return 'н/д';
+    if (typeof seconds !== 'number' || Number.isNaN(seconds)) return 'n/a';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     return `${h}h ${m}m`;
   };
 
   const makeSnapshot = (stats) => {
-    if (!stats) return 'немає збережених метрик';
-    const ram = stats.ramTotalBytes > 0 ? formatPercent((stats.ramTotalBytes - stats.ramAvailableBytes) / stats.ramTotalBytes) : 'н/д';
-    const disk = stats.diskTotalBytes > 0 ? formatPercent((stats.diskTotalBytes - stats.diskUsableBytes) / stats.diskTotalBytes) : 'н/д';
+    if (!stats) return 'no cached metrics';
+    const ram = stats.ramTotalBytes > 0 ? formatPercent((stats.ramTotalBytes - stats.ramAvailableBytes) / stats.ramTotalBytes) : 'n/a';
+    const disk = stats.diskTotalBytes > 0 ? formatPercent((stats.diskTotalBytes - stats.diskUsableBytes) / stats.diskTotalBytes) : 'n/a';
     return `CPU ${formatPercent(stats.cpuLoad01)} • RAM ${ram} • DISK ${disk} • TEMP ${formatTemp(stats.cpuTempC)} • POWER ${getPowerState(stats)}`;
   };
 
@@ -84,21 +87,35 @@
   };
 
   const tick = async () => {
+    if (navigator.onLine === false) {
+      failStreak = 1;
+      setOffline(true);
+      return;
+    }
+
     try {
-      await timeoutFetch(HB_URL, 1200);
-      const stats = await timeoutFetch(STATS_URL, 1500);
+      await timeoutFetch(HB_URL, HEARTBEAT_TIMEOUT_MS);
+      const stats = await timeoutFetch(STATS_URL, STATS_TIMEOUT_MS);
       localStorage.setItem(KEY_LAST_STATS, JSON.stringify(stats));
       localStorage.setItem(KEY_LAST_SEEN, String(Date.now()));
       failStreak = 0;
       if (offline) setOffline(false);
     } catch {
       failStreak += 1;
-      if (failStreak >= 2) setOffline(true);
+      if (failStreak >= 1) setOffline(true);
     }
   };
 
   refreshOverlay();
   window.addEventListener('storage', refreshOverlay);
+  window.addEventListener('offline', () => setOffline(true));
+  window.addEventListener('online', () => {
+    failStreak = 0;
+    tick();
+  });
+  if (navigator.onLine === false) {
+    setOffline(true);
+  }
   tick();
-  setInterval(tick, 2000);
+  setInterval(tick, POLL_INTERVAL_MS);
 })();
