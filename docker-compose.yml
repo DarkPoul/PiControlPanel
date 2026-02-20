@@ -1,0 +1,20 @@
+services:
+  pi-control:
+    build: .
+    container_name: pi-control
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      JAVA_OPTS: "-Xms128m -Xmx256m"
+
+    # доступ до vcgencmd (get_throttled)
+    devices:
+      - "/dev/vchiq:/dev/vchiq"
+
+    # доступ до температури CPU
+    volumes:
+      - "/sys/class/thermal/thermal_zone0/temp:/sys/class/thermal/thermal_zone0/temp:ro"
+
+    # Якщо throttling не читається — розкоментуй:
+    # privileged: true
