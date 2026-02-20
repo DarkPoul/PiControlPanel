@@ -1,7 +1,6 @@
 package esvar.ua.pi_control_panel;
 
 import java.util.List;
-import java.util.OptionalDouble;
 
 public record SystemStats(
         long uptimeSeconds,
@@ -14,7 +13,7 @@ public record SystemStats(
 
         double cpuLoad01,
 
-        OptionalDouble cpuTempC,
+        Double cpuTempC,
 
         // throttling flags (vcgencmd get_throttled)
         boolean undervoltageNow,

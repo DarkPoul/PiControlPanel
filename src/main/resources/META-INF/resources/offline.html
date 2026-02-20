@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pi Control Panel — Offline</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-a: #060814;
+      --bg-b: #0c1130;
+      --glass: rgba(18, 26, 52, 0.58);
+      --stroke: rgba(113, 167, 255, 0.32);
+      --text: #eff4ff;
+      --muted: rgba(214, 226, 255, 0.72);
+      --neon-a: #22d3ee;
+      --neon-b: #7c3aed;
+      --danger: #ff4d61;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 12% 14%, rgba(34,211,238,.18), transparent 60%),
+        radial-gradient(900px 600px at 85% 20%, rgba(124,58,237,.24), transparent 60%),
+        linear-gradient(180deg, var(--bg-a), var(--bg-b));
+      display: flex;
+      justify-content: center;
+      padding: 28px 14px 20px;
+    }
+    .wrap { width: min(1020px, 100%); }
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 5vw, 52px);
+      letter-spacing: .08em;
+      color: var(--danger);
+      text-shadow: 0 0 18px rgba(255,77,97,.35);
+    }
+    p { margin: 0; color: var(--muted); }
+    .last-seen {
+      margin-top: 12px;
+      display: inline-block;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--stroke);
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+    }
+    .grid {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid var(--stroke);
+      background: var(--glass);
+      border-radius: 14px;
+      padding: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 28px rgba(0,0,0,.35);
+    }
+    .k { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+    .v { margin-top: 8px; font-size: 24px; font-weight: 700; text-shadow: 0 0 12px rgba(34,211,238,.22); }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>⚫ ЗВʼЯЗОК ВТРАЧЕНО</h1>
+    <p>Raspberry Pi недоступний. Нижче — останній збережений знімок метрик (кеш браузера).</p>
+    <div class="last-seen">Останній контакт: <span id="lastSeen">—</span></div>
+
+    <section class="grid">
+      <article class="card"><div class="k">CPU %</div><div class="v" id="cpu">н/д</div></article>
+      <article class="card"><div class="k">Температура CPU</div><div class="v" id="temp">н/д</div></article>
+      <article class="card"><div class="k">Живлення/Тротл</div><div class="v" id="power">н/д</div></article>
+      <article class="card"><div class="k">ОЗП %</div><div class="v" id="ram">н/д</div></article>
+      <article class="card"><div class="k">Диск %</div><div class="v" id="disk">н/д</div></article>
+      <article class="card"><div class="k">Аптайм</div><div class="v" id="uptime">н/д</div></article>
+    </section>
+  </main>
+
+  <script>
+    const seenRaw = localStorage.getItem('cp:lastSeen');
+    const statsRaw = localStorage.getItem('cp:lastStats');
+
+    const fmtSeen = (v) => {
+      const ts = Number(v);
+      if (!v || Number.isNaN(ts) || ts <= 0) return '—';
+      return new Date(ts).toLocaleString('uk-UA');
+    };
+    const pct = (v) => (typeof v === 'number' && !Number.isNaN(v) ? `${Math.round(v * 100)}%` : 'н/д');
+    const temp = (v) => (typeof v === 'number' && !Number.isNaN(v) ? `${v.toFixed(1)}°C` : 'н/д');
+    const uptime = (s) => (typeof s === 'number' && !Number.isNaN(s) ? `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m` : 'н/д');
+
+    const power = (st) => {
+      if (!st) return 'н/д';
+      if (st.undervoltageNow || st.freqCappedNow || st.throttledNow) return 'КРИТИЧНО';
+      if (st.undervoltageOccurred || st.freqCappedOccurred || st.throttledOccurred) return 'БУЛО';
+      return 'OK';
+    };
+
+    document.getElementById('lastSeen').textContent = fmtSeen(seenRaw);
+
+    try {
+      const st = statsRaw ? JSON.parse(statsRaw) : null;
+      if (!st) throw new Error('empty');
+      const ram = st.ramTotalBytes > 0 ? (st.ramTotalBytes - st.ramAvailableBytes) / st.ramTotalBytes : NaN;
+      const disk = st.diskTotalBytes > 0 ? (st.diskTotalBytes - st.diskUsableBytes) / st.diskTotalBytes : NaN;
+
+      document.getElementById('cpu').textContent = pct(st.cpuLoad01);
+      document.getElementById('temp').textContent = temp(st.cpuTempC);
+      document.getElementById('power').textContent = power(st);
+      document.getElementById('ram').textContent = pct(ram);
+      document.getElementById('disk').textContent = pct(disk);
+      document.getElementById('uptime').textContent = uptime(st.uptimeSeconds);
+    } catch {
+      // keep defaults
+    }
+  </script>
+</body>
+</html>

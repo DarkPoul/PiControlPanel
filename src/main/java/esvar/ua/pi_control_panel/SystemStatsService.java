@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalDouble;
 
 @Service
 public class SystemStatsService {
@@ -36,7 +35,7 @@ public class SystemStatsService {
         double cpuLoad = cpu.getSystemCpuLoadBetweenTicks(prevCpuTicks);
         prevCpuTicks = cpu.getSystemCpuLoadTicks();
 
-        OptionalDouble tempC = readPiCpuTempC();
+        Double tempC = readPiCpuTempC();
 
         ThrottledFlags tf = readThrottledFlags();
 
@@ -45,8 +44,8 @@ public class SystemStatsService {
         List<String> crit = new ArrayList<>();
 
         // Температура
-        if (tempC.isPresent()) {
-            double t = tempC.getAsDouble();
+        if (tempC != null) {
+            double t = tempC;
             if (t >= 80.0) crit.add("Температура CPU критична: %.1f°C".formatted(t));
             else if (t >= 70.0) warn.add("Температура CPU висока: %.1f°C".formatted(t));
         }
@@ -94,15 +93,15 @@ public class SystemStatsService {
         return new Disk(best.getTotalSpace(), best.getUsableSpace());
     }
 
-    private OptionalDouble readPiCpuTempC() {
+    private Double readPiCpuTempC() {
         try {
-            if (!Files.exists(PI_TEMP)) return OptionalDouble.empty();
+            if (!Files.exists(PI_TEMP)) return null;
             String raw = Files.readString(PI_TEMP).trim(); // "42000"
-            if (raw.isBlank()) return OptionalDouble.empty();
+            if (raw.isBlank()) return null;
             double milli = Double.parseDouble(raw);
-            return OptionalDouble.of(milli / 1000.0);
+            return milli / 1000.0;
         } catch (Exception ignored) {
-            return OptionalDouble.empty();
+            return null;
         }
     }
 
