@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="uk">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,8 +13,6 @@
       --stroke: rgba(113, 167, 255, 0.32);
       --text: #eff4ff;
       --muted: rgba(214, 226, 255, 0.72);
-      --neon-a: #22d3ee;
-      --neon-b: #7c3aed;
       --danger: #ff4d61;
     }
     * { box-sizing: border-box; }
@@ -70,17 +68,17 @@
 </head>
 <body>
   <main class="wrap">
-    <h1>⚫ ЗВʼЯЗОК ВТРАЧЕНО</h1>
-    <p>Raspberry Pi недоступний. Нижче — останній збережений знімок метрик (кеш браузера).</p>
-    <div class="last-seen">Останній контакт: <span id="lastSeen">—</span></div>
+    <h1>⚫ CONNECTION LOST</h1>
+    <p>Raspberry Pi is unreachable. Showing last cached metrics from browser storage.</p>
+    <div class="last-seen">Last contact: <span id="lastSeen">—</span></div>
 
     <section class="grid">
-      <article class="card"><div class="k">CPU %</div><div class="v" id="cpu">н/д</div></article>
-      <article class="card"><div class="k">Температура CPU</div><div class="v" id="temp">н/д</div></article>
-      <article class="card"><div class="k">Живлення/Тротл</div><div class="v" id="power">н/д</div></article>
-      <article class="card"><div class="k">ОЗП %</div><div class="v" id="ram">н/д</div></article>
-      <article class="card"><div class="k">Диск %</div><div class="v" id="disk">н/д</div></article>
-      <article class="card"><div class="k">Аптайм</div><div class="v" id="uptime">н/д</div></article>
+      <article class="card"><div class="k">CPU %</div><div class="v" id="cpu">n/a</div></article>
+      <article class="card"><div class="k">CPU Temp</div><div class="v" id="temp">n/a</div></article>
+      <article class="card"><div class="k">Power/Throttle</div><div class="v" id="power">n/a</div></article>
+      <article class="card"><div class="k">RAM %</div><div class="v" id="ram">n/a</div></article>
+      <article class="card"><div class="k">Disk %</div><div class="v" id="disk">n/a</div></article>
+      <article class="card"><div class="k">Uptime</div><div class="v" id="uptime">n/a</div></article>
     </section>
   </main>
 
@@ -91,16 +89,16 @@
     const fmtSeen = (v) => {
       const ts = Number(v);
       if (!v || Number.isNaN(ts) || ts <= 0) return '—';
-      return new Date(ts).toLocaleString('uk-UA');
+      return new Date(ts).toLocaleString();
     };
-    const pct = (v) => (typeof v === 'number' && !Number.isNaN(v) ? `${Math.round(v * 100)}%` : 'н/д');
-    const temp = (v) => (typeof v === 'number' && !Number.isNaN(v) ? `${v.toFixed(1)}°C` : 'н/д');
-    const uptime = (s) => (typeof s === 'number' && !Number.isNaN(s) ? `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m` : 'н/д');
+    const pct = (v) => (typeof v === 'number' && !Number.isNaN(v) ? `${Math.round(v * 100)}%` : 'n/a');
+    const temp = (v) => (typeof v === 'number' && !Number.isNaN(v) ? `${v.toFixed(1)}°C` : 'n/a');
+    const uptime = (s) => (typeof s === 'number' && !Number.isNaN(s) ? `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m` : 'n/a');
 
     const power = (st) => {
-      if (!st) return 'н/д';
-      if (st.undervoltageNow || st.freqCappedNow || st.throttledNow) return 'КРИТИЧНО';
-      if (st.undervoltageOccurred || st.freqCappedOccurred || st.throttledOccurred) return 'БУЛО';
+      if (!st) return 'n/a';
+      if (st.undervoltageNow || st.freqCappedNow || st.throttledNow) return 'CRITICAL';
+      if (st.undervoltageOccurred || st.freqCappedOccurred || st.throttledOccurred) return 'PAST EVENT';
       return 'OK';
     };
 
